@@ -1,0 +1,75 @@
+diff --git a/Source/Core/CtrlrInlineUtilitiesGUI.h b/Source/Core/CtrlrInlineUtilitiesGUI.h
+index 3b1d8ab..3b1d8ab 100644
+--- a/Source/Core/CtrlrInlineUtilitiesGUI.h
++++ b/Source/Core/CtrlrInlineUtilitiesGUI.h
+@@ -1,5 +1,26 @@
+ #pragma once
+ #include <juce_gui_basics/juce_gui_basics.h>
++
++// ==== JUCE5 compat: map legacy colour-scheme helpers to LookAndFeel_V4 built-ins ====
++// (Gebruik macros; werkt met C++14 en vereist geen extra namespaces/classes.)
++#ifndef CTRLRX_LAF_COMPAT_DEFINED
++#define CTRLRX_LAF_COMPAT_DEFINED
++#define getJetBlackColourScheme      getDarkColourScheme
++#define getYamDxColourScheme         getGreyColourScheme
++#define getAkApcColourScheme         getDarkColourScheme
++#define getAkMpcColourScheme         getDarkColourScheme
++#define getLexiBlueColourScheme      getGreyColourScheme
++#define getKurzGreenColourScheme     getGreyColourScheme
++#define getKorGreyColourScheme       getGreyColourScheme
++#define getKorGoldColourScheme       getLightColourScheme
++#define getArturOrangeColourScheme   getDarkColourScheme
++#define getAiraGreenColourScheme     getDarkColourScheme
++#endif
++
+ // … (rest van bestand ongewijzigd)
+ 
+diff --git a/Source/Core/CtrlrManager/CtrlrManager.cpp b/Source/Core/CtrlrManager/CtrlrManager.cpp
+index 1111111..2222222 100644
+--- a/Source/Core/CtrlrManager/CtrlrManager.cpp
++++ b/Source/Core/CtrlrManager/CtrlrManager.cpp
+@@ -1,5 +1,17 @@
+ #include "CtrlrManager.h"
+ #include <juce_gui_basics/juce_gui_basics.h>
++
++// ==== JUCE5 compat: alias moderne macOS enum labels naar generiek MacOSX ====
++// Hiermee vermijden we "illegal qualified name" errors bij JUCE5 op Windows builds.
++#ifndef MacOSX_10_15
++ #define MacOSX_10_15 MacOSX
++#endif
++#ifndef MacOS_11
++ #define MacOS_11     MacOSX
++#endif
++#ifndef MacOS_12
++ #define MacOS_12     MacOSX
++#endif
++
+ // … (rest van bestand ongewijzigd)
+ 
+diff --git a/Source/Core/CtrlrPanel/CtrlrPanelFileOperations.cpp b/Source/Core/CtrlrPanel/CtrlrPanelFileOperations.cpp
+index 3333333..4444444 100644
+--- a/Source/Core/CtrlrPanel/CtrlrPanelFileOperations.cpp
++++ b/Source/Core/CtrlrPanel/CtrlrPanelFileOperations.cpp
+@@ -1,6 +1,9 @@
+ #include "CtrlrPanelFileOperations.h"
+ #include "CtrlrPanel.h"
+ #include <juce_audio_formats/juce_audio_formats.h>
++// smart pointers voor veilige stream-ownership-overdracht
++#include <memory>
++
+ 
+ // … (rest van includes / code)
+ 
+@@ -450,7 +453,18 @@ bool CtrlrPanelFileOperations::loadSomething(const juce::File& file)
+     juce::AudioFormat* fmt = fm.findFormatForFileExtension (file.getFileExtension());
+     if (fmt == nullptr)
+         return false;
+-
+-    juce::FileInputStream* in = new juce::FileInputStream (file);
+-    auto* reader = fmt->createReaderFor (in.release(), true);
++    // Gebruik unique_ptr en draag eigendom over via release(); JUCE zal de stream beheren.
++    auto in = std::make_unique<juce::FileInputStream>(file);
++    auto* reader = fmt->createReaderFor(in.release(), true);
+     if (reader == nullptr)
+         return false;
+     // …
