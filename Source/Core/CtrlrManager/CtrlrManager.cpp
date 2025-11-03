@@ -8,6 +8,7 @@
 #include "CtrlrPanel/CtrlrPanelEditor.h"
 #include "CtrlrLog.h"
 #include "CtrlrApplicationWindow/CtrlrLookAndFeel.h"
+#include "CompatJuce5.h"
 
 CtrlrManager::CtrlrManager(CtrlrProcessor *_owner, CtrlrLog &_ctrlrLog)
 	:	managerTree(Ids::manager),
